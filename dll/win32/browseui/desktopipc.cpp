@@ -347,9 +347,11 @@ static HRESULT ExplorerMessageLoop(IEThreadParamBlock * parameters)
     MSG Msg;
     BOOL Ret;
 
+#ifndef _M_AMD64 // FIXME: BROKEN!
     // Tell the thread ref we are using it.
     if (parameters && parameters->offsetF8)
         parameters->offsetF8->AddRef();
+#endif
 
     /* Handle /e parameter */
      UINT wFlags = 0;
