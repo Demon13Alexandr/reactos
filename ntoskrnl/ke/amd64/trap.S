@@ -773,18 +773,18 @@ PUBLIC KiSystemCallEntry64
     /* Allocate a TRAP_FRAME and space for parameters */
     sub rsp, (KTRAP_FRAME_LENGTH + MAX_SYSCALL_PARAM_SIZE)
 
-    /* Save rbp and load it with the old stack pointer */
-    mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rbp], rbp
-
-    mov rbp, gs:[PcUserRsp]
-
-    /* Save important registers in the trap frame */
+    /* Save volatile registers in the trap frame */
     mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rax], rax
     mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rip], rcx
+    mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rdx], rdx
+    mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_R8], r8
+    mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_R9], r9
     mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rcx], r10
     mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_EFlags], r11
 
-    //mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rbx], rbx
+    /* Store user stack pointer in the trap frame */
+    mov rax, gs:[PcUserRsp]
+    mov [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rsp], rax
 
     /* Set sane segments */
     mov ax, (KGDT64_R3_DATA or RPL_MASK)
@@ -807,9 +807,6 @@ PUBLIC KiSystemServiceExit
 KiSystemServiceExit LABEL PROC
 
 #if DBG
-    /* Restore rbp */
-    mov rbp, [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_Rbp]
-
     test dword ptr [rsp + MAX_SYSCALL_PARAM_SIZE + KTRAP_FRAME_EFlags], HEX(200)
     jnz IntsEnabled
     int 3
